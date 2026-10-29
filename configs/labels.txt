@@ -1,0 +1,7 @@
+person
+helmet
+safety_vest
+head
+excavator
+forklift
+
