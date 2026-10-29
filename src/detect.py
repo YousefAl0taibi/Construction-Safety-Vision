@@ -9,9 +9,13 @@ from pathlib import Path
 import cv2
 
 try:
+    from .ppe_status import tracked_helmet_statuses
     from .predictor import PPEDetector
+    from .tracker import SimpleTracker
 except ImportError:  # Allows: python src/detect.py
+    from ppe_status import tracked_helmet_statuses
     from predictor import PPEDetector
+    from tracker import SimpleTracker
 
 
 IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".bmp", ".webp"}
@@ -60,13 +64,29 @@ def detect_video(
     )
 
     frame_count = 0
+    tracker = SimpleTracker()
     inference_ms: list[float] = []
     started = time.perf_counter()
     while True:
         ok, frame = capture.read()
         if not ok:
             break
-        annotated, _, frame_inference_ms = detector.predict(frame)
+        annotated, detections, frame_inference_ms = detector.predict(frame)
+        for status in tracked_helmet_statuses(detections, tracker):
+            x1, y1, _, _ = (int(value) for value in status["box"])
+            wearing = bool(status["wearingHelmet"])
+            label = f'#{status["trackId"]} OK' if wearing else f'#{status["trackId"]} NO HELMET'
+            color = (0, 180, 0) if wearing else (0, 0, 255)
+            cv2.putText(
+                annotated,
+                label,
+                (x1, max(20, y1 - 10)),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                0.65,
+                color,
+                2,
+                cv2.LINE_AA,
+            )
         writer.write(annotated)
         inference_ms.append(frame_inference_ms)
         frame_count += 1

@@ -10,6 +10,7 @@ to detect construction workers and personal protective equipment in images and v
 - A proper train/validation/test workflow.
 - Evaluation using Precision, Recall, mAP@0.5, and mAP@0.5:0.95.
 - Object detection on images, videos, and a webcam.
+- Simple IoU-based person tracking with helmet-status labels in video.
 - Exporting a trained model to ONNX.
 - Serving image predictions through a small FastAPI service.
 - Packaging the API in a non-root Docker container.
@@ -107,8 +108,10 @@ Use webcam `0` and show the output window:
 python src/detect.py --source 0 --output outputs/webcam.mp4 --show
 ```
 
-The script reports the number of frames, average model inference time, and end-to-end processing
-FPS for videos. These numbers depend on the machine used.
+For videos and webcam input, the script gives each visible person a temporary tracking ID and adds
+an `OK` or `NO HELMET` label. This is intentionally a simple IoU and spatial-rule demo, not a
+safety-certified tracking system. The script also reports the number of frames, average model
+inference time, and end-to-end processing FPS. These numbers depend on the machine used.
 
 ## Deployable demo API
 
