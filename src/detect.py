@@ -7,7 +7,11 @@ import time
 from pathlib import Path
 
 import cv2
-from ultralytics import YOLO
+
+try:
+    from .predictor import PPEDetector
+except ImportError:  # Allows: python src/detect.py
+    from predictor import PPEDetector
 
 
 IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".bmp", ".webp"}
@@ -24,24 +28,22 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def detect_image(model: YOLO, source: Path, output: Path, confidence: float, device: str) -> None:
+def detect_image(detector: PPEDetector, source: Path, output: Path) -> None:
     image = cv2.imread(str(source))
     if image is None:
         raise SystemExit(f"Could not read image: {source}")
-    result = model.predict(image, conf=confidence, device=device, verbose=False)[0]
+    annotated, detections, inference_ms = detector.predict(image)
     output.parent.mkdir(parents=True, exist_ok=True)
-    cv2.imwrite(str(output), result.plot())
-    print(f"Detections: {len(result.boxes)}")
-    print(f"Inference: {result.speed['inference']:.1f} ms")
+    cv2.imwrite(str(output), annotated)
+    print(f"Detections: {len(detections)}")
+    print(f"Inference: {inference_ms:.1f} ms")
     print(f"Saved: {output}")
 
 
 def detect_video(
-    model: YOLO,
+    detector: PPEDetector,
     source: str,
     output: Path,
-    confidence: float,
-    device: str,
     show: bool,
 ) -> None:
     capture_source: int | str = int(source) if source.isdigit() else source
@@ -64,10 +66,9 @@ def detect_video(
         ok, frame = capture.read()
         if not ok:
             break
-        result = model.predict(frame, conf=confidence, device=device, verbose=False)[0]
-        annotated = result.plot()
+        annotated, _, frame_inference_ms = detector.predict(frame)
         writer.write(annotated)
-        inference_ms.append(result.speed["inference"])
+        inference_ms.append(frame_inference_ms)
         frame_count += 1
         if show:
             cv2.imshow("Construction PPE Detector", annotated)
@@ -92,13 +93,13 @@ def main() -> None:
         raise SystemExit(
             f"Model not found: {model_path}. Run notebooks/train_colab.ipynb first."
         )
-    model = YOLO(model_path)
+    detector = PPEDetector(model_path, args.confidence, args.device)
     source_path = Path(args.source)
     output = Path(args.output)
     if source_path.suffix.lower() in IMAGE_EXTENSIONS:
-        detect_image(model, source_path, output, args.confidence, args.device)
+        detect_image(detector, source_path, output)
     else:
-        detect_video(model, args.source, output, args.confidence, args.device, args.show)
+        detect_video(detector, args.source, output, args.show)
 
 
 if __name__ == "__main__":
