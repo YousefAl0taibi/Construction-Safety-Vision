@@ -8,6 +8,7 @@ import cv2
 import numpy as np
 from fastapi import FastAPI, File, HTTPException, UploadFile
 from fastapi.responses import JSONResponse, Response
+from starlette.concurrency import run_in_threadpool
 
 from .predictor import PPEDetector
 
@@ -17,7 +18,7 @@ DEVICE = os.getenv("DEVICE", "cpu")
 MAX_UPLOAD_BYTES = int(os.getenv("MAX_UPLOAD_BYTES", str(10 * 1024 * 1024)))
 ALLOWED_TYPES = {"image/jpeg", "image/png", "image/webp"}
 
-app = FastAPI(title="Construction PPE Detector", version="1.0.0")
+app = FastAPI(title="Construction PPE Detector", version="0.1.0")
 
 
 @lru_cache(maxsize=1)
@@ -33,7 +34,7 @@ def health() -> JSONResponse:
             content={"status": "model_missing", "model": str(MODEL_PATH), "device": DEVICE},
         )
     try:
-        get_detector()
+        get_detector().warmup()
     except Exception as error:
         return JSONResponse(
             status_code=503,
@@ -65,14 +66,14 @@ async def decode_upload(file: UploadFile) -> np.ndarray:
 def run_prediction(image: np.ndarray) -> tuple[np.ndarray, list[dict[str, object]], float]:
     try:
         return get_detector().predict(image)
-    except FileNotFoundError as error:
-        raise HTTPException(503, str(error)) from error
+    except Exception as error:
+        raise HTTPException(503, f"Model inference unavailable: {error}") from error
 
 
 @app.post("/predict")
 async def predict(file: UploadFile = File(...)) -> dict[str, object]:
     image = await decode_upload(file)
-    _, detections, inference_ms = run_prediction(image)
+    _, detections, inference_ms = await run_in_threadpool(run_prediction, image)
     return {
         "detections": detections,
         "count": len(detections),
@@ -83,7 +84,7 @@ async def predict(file: UploadFile = File(...)) -> dict[str, object]:
 @app.post("/predict/annotated")
 async def predict_annotated(file: UploadFile = File(...)) -> Response:
     image = await decode_upload(file)
-    annotated, detections, inference_ms = run_prediction(image)
+    annotated, detections, inference_ms = await run_in_threadpool(run_prediction, image)
     ok, encoded = cv2.imencode(".jpg", annotated)
     if not ok:
         raise HTTPException(500, "Could not encode prediction result")

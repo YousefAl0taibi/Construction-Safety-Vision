@@ -68,13 +68,22 @@ mAP@0.5:0.95 show that small or difficult PPE instances remain the main improvem
 
 ## Run locally
 
-Create an environment and install the small runtime dependency set:
+Create an environment and install the runtime dependencies.
+
+PowerShell on Windows:
+
+```powershell
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install -r requirements.txt
+```
+
+Bash on Linux or macOS:
 
 ```bash
-python -m venv .venv
-# Windows
-.venv\Scripts\activate
-pip install -r requirements.txt
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install -r requirements.txt
 ```
 
 Download the trained checkpoint from the
@@ -87,33 +96,28 @@ models/best.pt
 
 Detect objects in an image:
 
-```bash
-python src/detect.py \
-  --model models/best.pt \
-  --source samples/site.jpg \
-  --output outputs/site-result.jpg
+```text
+python src/detect.py --model models/best.pt --source samples/site.jpg --output outputs/site-result.jpg
 ```
 
 Process a video with an NVIDIA GPU:
 
-```bash
-python src/detect.py \
-  --model models/best.pt \
-  --source samples/site.mp4 \
-  --output outputs/site-result.mp4 \
-  --device 0
+```text
+python src/detect.py --model models/best.pt --source samples/site.mp4 --output outputs/site-result.mp4 --device 0
 ```
 
 Use webcam `0` and show the output window:
 
-```bash
+```text
 python src/detect.py --source 0 --output outputs/webcam.mp4 --show
 ```
 
 For videos and webcam input, the script gives each visible person a temporary tracking ID and adds
-an `OK` or `NO HELMET` label. This is intentionally a simple IoU and spatial-rule demo, not a
-safety-certified tracking system. The script also reports the number of frames, average model
-inference time, and end-to-end processing FPS. These numbers depend on the machine used.
+one of three heuristic labels: `OK` when helmet evidence is associated with the person's head area,
+`NO HELMET` when explicit `no_helmet` evidence is associated with it, or `UNKNOWN` when the model
+does not provide clear evidence either way. This is intentionally a simple IoU and spatial-rule
+demo, not a safety-certified tracking system. The script also reports the number of frames, average
+model inference time, and end-to-end processing FPS. These numbers depend on the machine used.
 
 ## Deployable demo API
 
@@ -128,15 +132,22 @@ POST /predict/annotated   annotated JPEG for visual inspection
 
 Start it locally:
 
-```bash
+```text
 uvicorn src.api:app --host 0.0.0.0 --port 8000
 ```
 
 Try it:
 
+PowerShell on Windows:
+
+```powershell
+curl.exe -F "file=@samples/site.jpg" http://localhost:8000/predict
+```
+
+Bash on Linux or macOS:
+
 ```bash
-curl -F "file=@samples/site.jpg" \
-  http://localhost:8000/predict
+curl -F "file=@samples/site.jpg" http://localhost:8000/predict
 ```
 
 Example response:
@@ -158,10 +169,16 @@ Example response:
 
 Request the visual result separately:
 
+PowerShell on Windows:
+
+```powershell
+curl.exe -F "file=@samples/site.jpg" http://localhost:8000/predict/annotated --output outputs/api-result.jpg
+```
+
+Bash on Linux or macOS:
+
 ```bash
-curl -F "file=@samples/site.jpg" \
-  http://localhost:8000/predict/annotated \
-  --output outputs/api-result.jpg
+curl -F "file=@samples/site.jpg" http://localhost:8000/predict/annotated --output outputs/api-result.jpg
 ```
 
 Configuration is supplied through environment variables rather than hardcoded deployment values:
@@ -181,11 +198,11 @@ so Docker does not report an unusable container as healthy.
 
 The model is mounted at runtime so it is not baked into the public image:
 
-```bash
+The following commands are each a single line and work in both PowerShell and Bash:
+
+```text
 docker build -t construction-ppe-detector .
-docker run --rm -p 8000:8000 \
-  -v "${PWD}/models:/app/models:ro" \
-  construction-ppe-detector
+docker run --rm -p 8000:8000 -v "${PWD}/models:/app/models:ro" construction-ppe-detector
 ```
 
 The container runs as a non-root user and includes a health check. The default image is CPU-based;
@@ -210,15 +227,15 @@ Those are product/platform concerns and would distract from the computer-vision 
 
 ## Tests
 
-Nine focused tests cover readiness, upload validation, the JSON response contract, geometry,
-tracking, helmet association, and output-path selection:
+Focused tests cover model warmup, readiness, upload validation, the JSON response contract,
+geometry, tracking, helmet association, output-path safety, and video resource cleanup:
 
-```bash
-pip install -r requirements-dev.txt
-pytest -q
+```text
+python -m pip install -r requirements-dev.txt
+python -m pytest -q
 ```
 
-## Project structure
+## Key project structure (abridged)
 
 ```text
 Construction-Safety-Vision/
@@ -233,15 +250,21 @@ Construction-Safety-Vision/
 │   └── predictor.py
 ├── tests/
 │   ├── test_api.py
+│   ├── test_predictor.py
 │   └── test_tracking.py
 ├── models/
 │   └── README.md
 ├── samples/
 │   └── README.md
 ├── results/
+│   ├── confusion_matrix.png
+│   ├── metrics.json
+│   ├── model_checksums.txt
 │   └── README.md
 ├── outputs/
 ├── Dockerfile
+├── LICENSE
+├── requirements-dev.txt
 ├── requirements.txt
 └── README.md
 ```
@@ -255,7 +278,9 @@ Construction-Safety-Vision/
 
 ## License
 
-This project is released under the [GNU AGPL-3.0](LICENSE). It uses Ultralytics and the
-Construction-PPE dataset, which follow the same open-source licensing path. A separate Ultralytics
-Enterprise license may be required for proprietary commercial deployment; review the upstream
-terms before such use.
+This project is released under the [GNU AGPL-3.0](LICENSE). It uses Ultralytics software and models,
+as well as the AGPL-3.0 Construction-PPE dataset. Under Ultralytics' current licensing guidance,
+using its software or trained models requires either complying with AGPL-3.0 for the complete
+project, as this repository does, or obtaining an Ultralytics Enterprise license when those
+obligations cannot be met—for example, for a proprietary closed-source deployment. Review the
+dataset terms separately before commercial use.

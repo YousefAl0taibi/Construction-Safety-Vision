@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+from threading import Lock
 
 import numpy as np
 from ultralytics import YOLO
@@ -16,11 +17,28 @@ class PPEDetector:
         self.model = YOLO(path)
         self.confidence = confidence
         self.device = device
+        self._inference_lock = Lock()
+        self._warmed_up = False
+
+    def warmup(self) -> None:
+        """Run one tiny inference to validate the model and configured device."""
+        if self._warmed_up:
+            return
+        with self._inference_lock:
+            if self._warmed_up:
+                return
+            sample = np.zeros((32, 32, 3), dtype=np.uint8)
+            self.model.predict(
+                sample, conf=self.confidence, device=self.device, verbose=False
+            )
+            self._warmed_up = True
 
     def predict(self, image: np.ndarray) -> tuple[np.ndarray, list[dict[str, object]], float]:
-        result = self.model.predict(
-            image, conf=self.confidence, device=self.device, verbose=False
-        )[0]
+        with self._inference_lock:
+            result = self.model.predict(
+                image, conf=self.confidence, device=self.device, verbose=False
+            )[0]
+            self._warmed_up = True
         detections: list[dict[str, object]] = []
         for box in result.boxes:
             class_id = int(box.cls.item())
