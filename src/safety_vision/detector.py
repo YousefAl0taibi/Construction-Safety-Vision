@@ -8,6 +8,17 @@ import onnxruntime as ort
 
 from .types import Detection
 
+CANONICAL_LABELS = {
+    "person": "person",
+    "hardhat": "helmet",
+    "helmet": "helmet",
+    "safety vest": "safety_vest",
+    "safety_vest": "safety_vest",
+    "vest": "safety_vest",
+    "excavator": "excavator",
+    "forklift": "forklift",
+}
+
 
 class OnnxYoloDetector:
     """YOLO ONNX inference with automatic CUDA-to-CPU fallback."""
@@ -107,7 +118,8 @@ class OnnxYoloDetector:
             x2 = min(float(width), (x + box_width - pad_x) / scale)
             y2 = min(float(height), (y + box_height - pad_y) / scale)
             class_id = class_ids[int(index)]
-            label = self.labels[class_id] if class_id < len(self.labels) else str(class_id)
+            raw_label = self.labels[class_id] if class_id < len(self.labels) else str(class_id)
+            label = CANONICAL_LABELS.get(raw_label.strip().lower(), raw_label.strip().lower())
             detections.append(
                 Detection(x1, y1, x2, y2, scores[int(index)], class_id, label)
             )

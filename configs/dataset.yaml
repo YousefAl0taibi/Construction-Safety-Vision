@@ -1,12 +1,8 @@
-path: /content/construction-safety-dataset
+path: /content/atharion-v1.0-public
 train: images/train
-val: images/val
+val: images/valid
 test: images/test
 names:
-  0: person
-  1: helmet
-  2: safety_vest
-  3: head
-  4: excavator
-  5: forklift
-
+  0: Person
+  1: Hardhat
+  2: Safety Vest
