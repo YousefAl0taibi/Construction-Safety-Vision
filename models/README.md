@@ -1,4 +1,5 @@
 # Model
 
-Run `notebooks/train_colab.ipynb`, download `best.pt`, and place it here as `models/best.pt`.
-The model file is ignored by Git because it may exceed normal repository limits.
+Download `best.pt` from the project release and place it here as `models/best.pt`. Model binaries
+are ignored by normal Git history; their SHA-256 values are recorded in
+`results/model_checksums.txt` so downloaded artifacts can be verified.
