@@ -15,6 +15,16 @@ def test_health_returns_503_when_model_is_missing(monkeypatch, tmp_path):
     assert response.json()["status"] == "model_missing"
 
 
+def test_health_returns_503_when_model_cannot_load(monkeypatch, tmp_path):
+    model = tmp_path / "broken.pt"
+    model.write_bytes(b"not a model")
+    monkeypatch.setattr(api, "MODEL_PATH", model)
+    monkeypatch.setattr(api, "get_detector", lambda: (_ for _ in ()).throw(RuntimeError("bad model")))
+    response = client.get("/health")
+    assert response.status_code == 503
+    assert response.json()["status"] == "model_error"
+
+
 def test_predict_rejects_non_image_upload():
     response = client.post("/predict", files={"file": ("notes.txt", b"x", "text/plain")})
     assert response.status_code == 415

@@ -77,7 +77,9 @@ python -m venv .venv
 pip install -r requirements.txt
 ```
 
-Copy the trained checkpoint to:
+Download the trained checkpoint from the
+[GitHub Releases page](https://github.com/YousefAl0taibi/Construction-Safety-Vision/releases)
+and place it at:
 
 ```text
 models/best.pt
@@ -172,8 +174,8 @@ Configuration is supplied through environment variables rather than hardcoded de
 | `MAX_UPLOAD_BYTES` | `10485760` | Maximum uploaded image size |
 
 The prediction endpoints accept JPEG, PNG, and WebP images and reject oversized uploads. The
-health endpoint returns HTTP `503` when the model is missing, so Docker does not report an unusable
-container as healthy.
+health endpoint loads the model once and returns HTTP `503` when it is missing or cannot be loaded,
+so Docker does not report an unusable container as healthy.
 
 ## Docker
 
@@ -195,7 +197,7 @@ Included because it demonstrates that the model can leave the notebook:
 
 - one inference contract, with JSON and annotated-image representations;
 - input validation and environment-based configuration;
-- a health endpoint, three API tests, and a Docker image.
+- a model-loading health endpoint, focused API and tracking tests, and a Docker image.
 
 Explicitly out of scope:
 
@@ -208,8 +210,8 @@ Those are product/platform concerns and would distract from the computer-vision 
 
 ## Tests
 
-Three small API tests cover readiness, upload validation, and the JSON response contract without
-loading a real model:
+Nine focused tests cover readiness, upload validation, the JSON response contract, geometry,
+tracking, helmet association, and output-path selection:
 
 ```bash
 pip install -r requirements-dev.txt
@@ -225,9 +227,13 @@ Construction-Safety-Vision/
 ├── src/
 │   ├── api.py
 │   ├── detect.py
+│   ├── geometry.py
+│   ├── ppe_status.py
+│   ├── tracker.py
 │   └── predictor.py
 ├── tests/
-│   └── test_api.py
+│   ├── test_api.py
+│   └── test_tracking.py
 ├── models/
 │   └── README.md
 ├── samples/
@@ -246,3 +252,10 @@ Construction-Safety-Vision/
 - The public dataset may not represent a specific real construction site.
 - Predictions are not a replacement for a qualified safety officer.
 - A confidence threshold must be validated for the target environment.
+
+## License
+
+This project is released under the [GNU AGPL-3.0](LICENSE). It uses Ultralytics and the
+Construction-PPE dataset, which follow the same open-source licensing path. A separate Ultralytics
+Enterprise license may be required for proprietary commercial deployment; review the upstream
+terms before such use.

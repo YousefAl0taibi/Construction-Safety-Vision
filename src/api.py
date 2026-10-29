@@ -27,14 +27,26 @@ def get_detector() -> PPEDetector:
 
 @app.get("/health")
 def health() -> JSONResponse:
-    ready = MODEL_PATH.exists()
+    if not MODEL_PATH.exists():
+        return JSONResponse(
+            status_code=503,
+            content={"status": "model_missing", "model": str(MODEL_PATH), "device": DEVICE},
+        )
+    try:
+        get_detector()
+    except Exception as error:
+        return JSONResponse(
+            status_code=503,
+            content={
+                "status": "model_error",
+                "model": str(MODEL_PATH),
+                "device": DEVICE,
+                "detail": str(error),
+            },
+        )
     return JSONResponse(
-        status_code=200 if ready else 503,
-        content={
-            "status": "ready" if ready else "model_missing",
-            "model": str(MODEL_PATH),
-            "device": DEVICE,
-        },
+        status_code=200,
+        content={"status": "ready", "model": str(MODEL_PATH), "device": DEVICE},
     )
 
 

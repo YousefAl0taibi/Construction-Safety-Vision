@@ -1,5 +1,8 @@
+from pathlib import Path
+
 import pytest
 
+from src.detect import default_output
 from src.geometry import center_in_top, iou
 from src.ppe_status import tracked_helmet_statuses
 from src.tracker import SimpleTracker
@@ -29,3 +32,8 @@ def test_helmet_status_is_associated_with_person_head_area():
     ]
     statuses = tracked_helmet_statuses(detections, SimpleTracker())
     assert statuses[0]["wearingHelmet"] is True
+
+
+def test_default_output_matches_source_kind():
+    assert default_output(Path("site.jpg")) == Path("outputs/result.jpg")
+    assert default_output(Path("site.mp4")) == Path("outputs/result.mp4")

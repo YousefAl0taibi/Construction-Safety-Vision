@@ -25,7 +25,10 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Construction PPE detector")
     parser.add_argument("--model", default="models/best.pt", help="Path to trained .pt model")
     parser.add_argument("--source", required=True, help="Image, video path, or webcam index")
-    parser.add_argument("--output", default="outputs/result.mp4", help="Output image or video")
+    parser.add_argument(
+        "--output",
+        help="Output path (defaults to outputs/result.jpg or outputs/result.mp4)",
+    )
     parser.add_argument("--confidence", type=float, default=0.35)
     parser.add_argument("--device", default="cpu", help="cpu, 0, 1, ...")
     parser.add_argument("--show", action="store_true", help="Show frames while processing video")
@@ -38,7 +41,8 @@ def detect_image(detector: PPEDetector, source: Path, output: Path) -> None:
         raise SystemExit(f"Could not read image: {source}")
     annotated, detections, inference_ms = detector.predict(image)
     output.parent.mkdir(parents=True, exist_ok=True)
-    cv2.imwrite(str(output), annotated)
+    if not cv2.imwrite(str(output), annotated):
+        raise SystemExit(f"Could not write image: {output}")
     print(f"Detections: {len(detections)}")
     print(f"Inference: {inference_ms:.1f} ms")
     print(f"Saved: {output}")
@@ -62,6 +66,9 @@ def detect_video(
     writer = cv2.VideoWriter(
         str(output), cv2.VideoWriter_fourcc(*"mp4v"), source_fps, (width, height)
     )
+    if not writer.isOpened():
+        capture.release()
+        raise SystemExit(f"Could not open video writer: {output}")
 
     frame_count = 0
     tracker = SimpleTracker()
@@ -115,11 +122,17 @@ def main() -> None:
         )
     detector = PPEDetector(model_path, args.confidence, args.device)
     source_path = Path(args.source)
-    output = Path(args.output)
+    output = Path(args.output) if args.output else default_output(source_path)
     if source_path.suffix.lower() in IMAGE_EXTENSIONS:
         detect_image(detector, source_path, output)
     else:
         detect_video(detector, args.source, output, args.show)
+
+
+def default_output(source: Path) -> Path:
+    """Choose an output extension that matches the input kind."""
+    suffix = ".jpg" if source.suffix.lower() in IMAGE_EXTENSIONS else ".mp4"
+    return Path("outputs") / f"result{suffix}"
 
 
 if __name__ == "__main__":
