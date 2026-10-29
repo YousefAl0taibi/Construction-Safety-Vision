@@ -1,5 +1,4 @@
-# Model artifacts
+# Model
 
-Place the exported model at `models/safety_detector.onnx`. Large checkpoints are intentionally
-excluded from Git; publish versioned weights through GitHub Releases or Git LFS.
-
+Run `notebooks/train_colab.ipynb`, download `best.pt`, and place it here as `models/best.pt`.
+The model file is ignored by Git because it may exceed normal repository limits.
