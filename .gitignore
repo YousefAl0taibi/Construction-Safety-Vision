@@ -6,7 +6,12 @@ __pycache__/
 .venv/
 venv/
 .env
-data/
+data/*
+!data/saudi/
+data/saudi/*
+!data/saudi/README.md
+!data/saudi/ATTRIBUTION.md
+!data/saudi/sources.csv
 models/*.pt
 models/*.onnx
 outputs/*

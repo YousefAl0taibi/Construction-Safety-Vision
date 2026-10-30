@@ -50,4 +50,5 @@ class PPEDetector:
                     "box": [round(float(value), 1) for value in box.xyxy[0].tolist()],
                 }
             )
-        return result.plot(), detections, float(result.speed["inference"])
+        annotated = result.plot(line_width=2, font_size=12)
+        return annotated, detections, float(result.speed["inference"])
