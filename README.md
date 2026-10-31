@@ -108,6 +108,11 @@ Then run all cells. The notebook will:
 10. download the models, metrics, plots, class counts, threshold study, and examples as
    `construction-ppe-results.zip`.
 
+To evaluate the exact checkpoint already used by this repository without retraining, change
+`USE_EXISTING_CHECKPOINT` to `True`, run all cells, and upload `models/best.pt` when Colab asks. The
+same test metrics, confidence-threshold study, training-label counts, examples, and exports will be
+generated against that checkpoint.
+
 The baseline was trained for up to 40 epochs with YOLO11n and evaluated on the dataset's held-out
 141-image test split:
 
