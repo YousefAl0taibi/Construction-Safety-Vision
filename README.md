@@ -235,31 +235,11 @@ The counting units differ, so this is qualitative rather than an accuracy compar
 metadata and caveats are in [`results/README.md`](results/README.md).
 
 ```text
-python scripts/download_saudi_video.py
 python -m scripts.run_saudi_video_pilot --device cpu
 ```
 
 If DVIDS requires sign-in, follow the manual download path in
 [`data/saudi/README.md`](data/saudi/README.md).
-
-### Reproducible CPU benchmark
-
-The committed benchmark repeats the included 1536×1024 demonstration image after five warm-up
-runs and measures 100 iterations on an AMD Ryzen 5 3500U CPU using four Torch threads:
-
-| Measurement | Mean latency | Throughput |
-|---|---:|---:|
-| Model inference | 235.7 ms | 4.24 FPS |
-| End-to-end in-memory image pipeline | 263.5 ms | 3.79 FPS |
-
-The end-to-end number includes preprocessing, inference, conversion of detections, and annotation;
-it excludes disk I/O and video encoding. For a comparable input size, encoded-video throughput is
-expected to be lower and is not directly measured here. Recorded run metadata is stored in
-[`results/benchmark.json`](results/benchmark.json), and the benchmark can be repeated with:
-
-```text
-python -m scripts.benchmark --model models/best.pt --source samples/construction-site-synthetic.png --device cpu --confidence 0.35 --output results/benchmark.json
-```
 
 ## Deployable demo API
 
@@ -339,7 +319,7 @@ Those are product/platform concerns and would distract from the computer-vision 
 
 Focused tests cover model warmup, readiness, upload validation, the JSON response contract,
 geometry, tracking, helmet association, output-path safety, video resource cleanup, and validation
-of the Saudi image/video manifests and downloader helpers:
+of the Saudi manifests, image downloader, and video pilot:
 
 ```text
 python -m pip install -r requirements-dev.txt

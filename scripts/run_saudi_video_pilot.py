@@ -57,7 +57,8 @@ def validate_args(args: argparse.Namespace) -> None:
         raise SystemExit(f"Model not found: {args.model}")
     if not args.source.is_file():
         raise SystemExit(
-            f"Video not found: {args.source}. Run scripts/download_saudi_video.py first."
+            f"Video not found: {args.source}. Download the documented clip manually; "
+            "see data/saudi/README.md."
         )
     if not 0.0 <= args.confidence <= 1.0:
         raise SystemExit("--confidence must be between 0 and 1")

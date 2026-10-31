@@ -75,15 +75,9 @@ label file. `no_boots` is the smallest class with 88 instances (0.97% of all ins
 contributor to the zero test recall for `no_boots`, but establishing causation would require a
 controlled retraining or resampling experiment.
 
-## Runtime benchmark
+## Video runtime benchmark
 
-`benchmark.json` records a reproducible CPU measurement on the included synthetic demonstration
-image. It separates model-only inference (`4.24 FPS`) from the complete in-memory image pipeline
-(`3.79 FPS`). The latter includes annotation but excludes disk I/O and video encoding, so it should
-not be presented as camera or production throughput. Hardware, versions, image size, warm-up count,
-and measured iterations are stored with the result.
-
-`saudi-video-benchmark.json` is a separate real-video measurement over 720 frames of the documented
+`saudi-video-benchmark.json` records a real-video measurement over 720 frames of the documented
 Saudi airfield-repair clip. On the recorded CPU run, mean inference was `181.4 ms` and the complete
 decode, inference, tracking, annotation, and MP4-encoding pipeline ran at `4.60 FPS`. This is below
 the source rate of 24 FPS and is explicitly an offline result. GIF creation occurs after the timed
