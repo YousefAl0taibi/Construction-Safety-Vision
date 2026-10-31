@@ -41,3 +41,10 @@ image. It separates model-only inference (`4.24 FPS`) from the complete in-memor
 (`3.79 FPS`). The latter includes annotation but excludes disk I/O and video encoding, so it should
 not be presented as camera or production throughput. Hardware, versions, image size, warm-up count,
 and measured iterations are stored with the result.
+
+`saudi-video-benchmark.json` is a separate real-video measurement over 720 frames of the documented
+Saudi airfield-repair clip. On the recorded CPU run, mean inference was `181.4 ms` and the complete
+decode, inference, tracking, annotation, and MP4-encoding pipeline ran at `4.60 FPS`. This is below
+the source rate of 24 FPS and is explicitly an offline result. GIF creation occurs after the timed
+section. Temporary track-ID and helmet-status counts are heuristic per-frame outputs, not unique
+people, incidents, or accuracy measurements.

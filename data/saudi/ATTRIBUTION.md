@@ -31,6 +31,18 @@ prediction boxes and labels:
 Both source pages mark the photographs Public Domain. The DVIDS limitations and non-endorsement
 statement above still apply to their use here.
 
+### Video used for the motion demo
+
+| Published derivative | Original source | Creator | Modification |
+|---|---|---|---|
+| `docs/images/saudi/saudi-video-demo.gif` | [Airfield damage repair during Native Fury](https://www.dvidshub.net/video/923711/2nd-distribution-support-battalion-conduct-airfield-damage-repair-during-native-fury) | Cpl. Meshaq Hylton | First 30 seconds processed with prediction, tracking, and status overlays; seconds 18–28 resized to 720 pixels wide and sampled at 1 FPS for the published preview |
+
+The DVIDS page reports Prince Sultan Air Base, Saudi Arabia, marks the video Public Domain, and
+identifies the original as a 66-second B-roll work dated 12 May 2024. The raw video and annotated
+MP4 remain outside Git history; `video_sources.csv` records the exact download variant and clip
+selection. The derivative is a model demonstration and does not imply DVIDS or Department of War
+endorsement.
+
 ## KAUST scaffolding workers
 
 - Title: `KAUST scaffolding workers.jpg`

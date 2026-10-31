@@ -1,0 +1,45 @@
+{
+  "schemaVersion": 1,
+  "workload": "decoded, inferred, annotated, tracked, and encoded video clip",
+  "source": "data/saudi/videos/raw/dvids-923711-airfield-repair.mp4",
+  "sourcePage": "https://www.dvidshub.net/video/923711/2nd-distribution-support-battalion-conduct-airfield-damage-repair-during-native-fury",
+  "model": "models/best.pt",
+  "device": "cpu",
+  "confidence": 0.35,
+  "modelInitialisationExcluded": true,
+  "torchThreads": 4,
+  "startSeconds": 0.0,
+  "requestedDurationSeconds": 30.0,
+  "processedDurationSeconds": 30.0,
+  "sourceFps": 24.0,
+  "resolution": {
+    "width": 1280,
+    "height": 720
+  },
+  "frames": 720,
+  "gifFrames": 10,
+  "gifSampleFps": 1.0,
+  "gifStartSeconds": 18.0,
+  "gifDurationSeconds": 10.0,
+  "gifCreationExcludedFromTiming": true,
+  "detections": 1614,
+  "uniquePersonTrackIds": 20,
+  "helmetStatusFrameCounts": {
+    "OK": 280,
+    "UNKNOWN": 671
+  },
+  "meanModelInferenceMs": 181.4,
+  "endToEndProcessingFps": 4.6,
+  "elapsedSeconds": 156.59,
+  "videoOutput": "outputs/saudi-video/annotated.mp4",
+  "gifOutput": "docs/images/saudi/saudi-video-demo.gif",
+  "environment": {
+    "hardware": "AMD Ryzen 5 3500U with Radeon Vega Mobile Gfx (CPU)",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.14",
+    "torch": "2.15.0+cpu",
+    "opencv": "4.11.0",
+    "ultralytics": "8.3.221"
+  },
+  "notes": "Throughput includes decode, inference, tracking, annotation, and MP4 encoding; GIF creation is measured after this timer. Track IDs are heuristic, not identities."
+}

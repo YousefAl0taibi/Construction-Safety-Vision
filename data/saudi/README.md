@@ -63,3 +63,24 @@ reviewed ground-truth annotations.
 The location field records the publisher's reported capture location, not the nationality of anyone
 shown. One excluded DVIDS row preserves a caption/metadata location conflict explicitly rather than
 silently resolving it.
+
+## Licensed video check
+
+[`video_sources.csv`](video_sources.csv) records one approved DVIDS B-roll video of airfield repair
+at Prince Sultan Air Base. The source page marks the work Public Domain. Download the documented
+1280×720 MP4 variant, then run a 30-second detection/tracking check:
+
+```text
+python scripts/download_saudi_video.py --dry-run
+python scripts/download_saudi_video.py
+python -m scripts.run_saudi_video_pilot --device cpu
+```
+
+If DVIDS requires an interactive login, open the recorded source page, choose its 1280×720 MP4
+download, and save it as
+`data/saudi/videos/raw/dvids-923711-airfield-repair.mp4`; the processing command stays the same.
+
+The original MP4, annotated MP4, and download report remain ignored. The derived GIF is intended
+for `docs/images/saudi/`, while the machine-readable performance summary is intended for `results/`.
+Review the generated frames before committing either file; a successful command is not by itself
+evidence that the clip demonstrates useful tracking.

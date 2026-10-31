@@ -27,6 +27,39 @@ def test_tracker_keeps_id_for_overlapping_person():
     assert second_id == first_id
 
 
+def test_tracker_keeps_id_across_short_detection_gap():
+    tracker = SimpleTracker()
+    first_id = next(iter(tracker.update([[0, 0, 100, 200]])))
+
+    assert tracker.update([]) == {}
+    second_id = next(iter(tracker.update([[5, 0, 105, 200]])))
+
+    assert second_id == first_id
+
+
+def test_tracker_expires_id_after_max_missed_frames():
+    tracker = SimpleTracker(threshold=0.3, max_missed=1)
+    first_id = next(iter(tracker.update([[0, 0, 100, 200]])))
+
+    tracker.update([])
+    tracker.update([])
+    second_id = next(iter(tracker.update([[5, 0, 105, 200]])))
+
+    assert second_id != first_id
+
+
+@pytest.mark.parametrize(
+    ("kwargs", "message"),
+    [
+        ({"threshold": 1.1}, "threshold"),
+        ({"max_missed": -1}, "max_missed"),
+    ],
+)
+def test_tracker_rejects_invalid_configuration(kwargs, message):
+    with pytest.raises(ValueError, match=message):
+        SimpleTracker(**kwargs)
+
+
 def test_helmet_status_is_associated_with_person_head_area():
     detections = [
         {"className": "Person", "box": [0, 0, 100, 200]},

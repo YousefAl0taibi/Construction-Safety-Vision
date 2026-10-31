@@ -12,6 +12,7 @@ data/saudi/*
 !data/saudi/README.md
 !data/saudi/ATTRIBUTION.md
 !data/saudi/sources.csv
+!data/saudi/video_sources.csv
 models/*.pt
 models/*.onnx
 outputs/*

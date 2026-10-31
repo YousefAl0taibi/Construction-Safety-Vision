@@ -48,6 +48,34 @@ def detect_image(detector: PPEDetector, source: Path, output: Path) -> None:
     print(f"Saved: {output}")
 
 
+def annotate_tracking(
+    annotated, detections: list[dict[str, object]], tracker: SimpleTracker
+) -> list[dict[str, object]]:
+    """Draw the current frame's person IDs and three-state helmet status."""
+    statuses = tracked_helmet_statuses(detections, tracker)
+    for status in statuses:
+        x1, y1, _, _ = (int(value) for value in status["box"])
+        helmet_status = str(status["helmetStatus"])
+        label_status = helmet_status.replace("_", " ")
+        label = f'#{status["trackId"]} {label_status}'
+        color = {
+            "OK": (0, 180, 0),
+            "NO_HELMET": (0, 0, 255),
+            "UNKNOWN": (0, 165, 255),
+        }[helmet_status]
+        cv2.putText(
+            annotated,
+            label,
+            (x1, max(20, y1 - 10)),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            0.65,
+            color,
+            2,
+            cv2.LINE_AA,
+        )
+    return statuses
+
+
 def detect_video(
     detector: PPEDetector,
     source: str,
@@ -81,26 +109,7 @@ def detect_video(
             if not ok:
                 break
             annotated, detections, frame_inference_ms = detector.predict(frame)
-            for status in tracked_helmet_statuses(detections, tracker):
-                x1, y1, _, _ = (int(value) for value in status["box"])
-                helmet_status = str(status["helmetStatus"])
-                label_status = helmet_status.replace("_", " ")
-                label = f'#{status["trackId"]} {label_status}'
-                color = {
-                    "OK": (0, 180, 0),
-                    "NO_HELMET": (0, 0, 255),
-                    "UNKNOWN": (0, 165, 255),
-                }[helmet_status]
-                cv2.putText(
-                    annotated,
-                    label,
-                    (x1, max(20, y1 - 10)),
-                    cv2.FONT_HERSHEY_SIMPLEX,
-                    0.65,
-                    color,
-                    2,
-                    cv2.LINE_AA,
-                )
+            annotate_tracking(annotated, detections, tracker)
             writer.write(annotated)
             inference_ms.append(frame_inference_ms)
             frame_count += 1

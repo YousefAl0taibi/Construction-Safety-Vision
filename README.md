@@ -79,6 +79,8 @@ In the second image, the heavily occluded worker inside the manhole receives no 
 Keeping this failure case visible makes the domain limitation clearer than showing only successful
 outputs.
 
+**Model output: 0 detections at confidence `0.35`.**
+
 ![Missed worker in a confined-space inspection](docs/images/saudi/dvids-7930293-prediction.jpg)
 
 The two source photographs are marked Public Domain on DVIDS; creator, source, modification, and
@@ -99,10 +101,11 @@ Then run all cells. The notebook will:
 3. fine-tune YOLO11n for up to 40 epochs;
 4. evaluate the held-out test split;
 5. print Precision, Recall, mAP50, and mAP50-95;
-6. measure fixed confidence operating points at `0.20`, `0.35`, and `0.50`;
-7. render six held-out prediction examples;
-8. export `best.pt` and `best.onnx`;
-9. download the models, metrics, plots, threshold study, and examples as
+6. count training instances per class;
+7. measure fixed confidence operating points at `0.20`, `0.35`, and `0.50`;
+8. render six held-out prediction examples;
+9. export `best.pt` and `best.onnx`;
+10. download the models, metrics, plots, class counts, threshold study, and examples as
    `construction-ppe-results.zip`.
 
 The baseline was trained for up to 40 epochs with YOLO11n and evaluated on the dataset's held-out
@@ -165,7 +168,7 @@ Detect objects in an image:
 python src/detect.py --model models/best.pt --source samples/construction-site-synthetic.png --output outputs/site-result.jpg
 ```
 
-Process a video with an NVIDIA GPU:
+To process your own video, first place an authorised clip at `samples/site.mp4`, then run:
 
 ```text
 python src/detect.py --model models/best.pt --source samples/site.mp4 --output outputs/site-result.mp4 --device 0
@@ -181,8 +184,41 @@ For videos and webcam input, the script gives each visible person a temporary tr
 one of three heuristic labels: `OK` when helmet evidence is associated with the person's head area,
 `NO HELMET` when explicit `no_helmet` evidence is associated with it, or `UNKNOWN` when the model
 does not provide clear evidence either way. This is intentionally a simple IoU and spatial-rule
-demo, not a safety-certified tracking system. The script also reports the number of frames, average
-model inference time, and end-to-end processing FPS. These numbers depend on the machine used.
+demo, not a safety-certified tracking system. A track is retained internally for up to 30 missed
+frames so a brief detector gap does not immediately renumber the person; retained tracks are not
+reported as current detections. The script also reports the number of frames, average model
+inference time, and end-to-end processing FPS. These numbers depend on the machine used.
+
+### Reproducible Saudi video check
+
+[`data/saudi/video_sources.csv`](data/saudi/video_sources.csv) records a 66-second DVIDS B-roll clip
+of airfield repair at Prince Sultan Air Base. The source page marks it Public Domain. The raw MP4
+remains ignored; the pipeline processes the first 30 seconds and creates an annotated MP4, a small
+README GIF, and a separate video-throughput JSON report:
+
+![Saudi airfield-repair video detection and tracking demo](docs/images/saudi/saudi-video-demo.gif)
+
+The committed run processed 720 frames (30 seconds at 1280×720 and 24 source FPS) on an AMD Ryzen 5
+3500U CPU. Mean model inference was `181.4 ms` per frame and the complete decode → inference →
+tracking → annotation → MP4-encoding pipeline achieved `4.60 FPS`. It is therefore an offline demo,
+not real-time processing of this 24 FPS source. The model produced 1,614 detections and 20 temporary
+person track IDs. Those IDs may include fragmented tracks and must not be interpreted as 20 unique
+people. Person-frame helmet states were 280 `OK`, 671 `UNKNOWN`, and no explicit `NO_HELMET`;
+these are per-frame heuristic outputs, not safety events or accuracy measurements. Full metadata is
+in [`results/saudi-video-benchmark.json`](results/saudi-video-benchmark.json).
+
+```text
+python scripts/download_saudi_video.py
+python -m scripts.run_saudi_video_pilot --device cpu
+```
+
+Video downloads on DVIDS require a free signed-in account. If the downloader reports `403`, open
+the recorded source page, sign in, choose the 1280×720 MP4, and save it as
+`data/saudi/videos/raw/dvids-923711-airfield-repair.mp4`; then run the second command above.
+
+The raw and annotated MP4 files remain outside Git history. For a concise visual preview, the 1 FPS
+GIF shows seconds 18–28 where people and tracking labels are visible. The FPS figure still comes
+from all 720 processed frames, not from this selected display window.
 
 ### Reproducible CPU benchmark
 
@@ -313,7 +349,7 @@ Those are product/platform concerns and would distract from the computer-vision 
 
 Focused tests cover model warmup, readiness, upload validation, the JSON response contract,
 geometry, tracking, helmet association, output-path safety, video resource cleanup, and validation
-of the Saudi-source manifest and downloader helpers:
+of the Saudi image/video manifests and downloader helpers:
 
 ```text
 python -m pip install -r requirements-dev.txt
@@ -337,11 +373,13 @@ Construction-Safety-Vision/
 │   ├── test_api.py
 │   ├── test_predictor.py
 │   ├── test_saudi_sources.py
+│   ├── test_saudi_video.py
 │   └── test_tracking.py
 ├── data/saudi/
 │   ├── ATTRIBUTION.md
 │   ├── README.md
-│   └── sources.csv
+│   ├── sources.csv
+│   └── video_sources.csv
 ├── models/
 │   └── README.md
 ├── samples/
@@ -352,17 +390,21 @@ Construction-Safety-Vision/
 │   ├── demo-output-synthetic.jpg
 │   └── saudi/
 │       ├── dvids-7926006-prediction.jpg
-│       └── dvids-7930293-prediction.jpg
+│       ├── dvids-7930293-prediction.jpg
+│       └── saudi-video-demo.gif
 ├── results/
 │   ├── benchmark.json
 │   ├── confusion_matrix.png
 │   ├── metrics.json
 │   ├── model_checksums.txt
+│   ├── saudi-video-benchmark.json
 │   └── README.md
 ├── scripts/
 │   ├── benchmark.py
 │   ├── download_saudi_sources.py
-│   └── run_saudi_pilot.py
+│   ├── download_saudi_video.py
+│   ├── run_saudi_pilot.py
+│   └── run_saudi_video_pilot.py
 ├── outputs/
 ├── Dockerfile
 ├── LICENSE
