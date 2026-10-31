@@ -139,6 +139,37 @@ as larger weaknesses than class separation. The matrix alone does not prove that
 is the cause; that would require stratifying results by bounding-box area and inspecting occlusion
 and lighting. See [`results/README.md`](results/README.md) for the count definitions.
 
+### Confidence-threshold trade-off
+
+The held-out test predictions were also sampled at three fixed confidence thresholds, using
+class-aware matching at IoU `0.50`. These are macro averages over the 11 classes and therefore are
+not directly interchangeable with the aggregate summary metrics above:
+
+| Confidence | Macro precision | Macro recall | Macro F1 |
+|---:|---:|---:|---:|
+| 0.20 | 0.6364 | 0.5500 | 0.5448 |
+| 0.35 | 0.7402 | 0.4855 | 0.5219 |
+| 0.50 | 0.8638 | 0.4505 | 0.5116 |
+
+Lowering the threshold from `0.35` to `0.20` gains 6.45 percentage points of macro recall while
+losing 10.38 points of macro precision. That can be a reasonable operating point for a
+human-reviewed safety-screening workflow, where a missed hazard may cost more than reviewing a
+false alarm. It is not a universal default: the repository keeps `0.35` so its demos and recorded
+benchmarks remain reproducible. Full per-class values and supports are in
+[`results/fixed_threshold_metrics.json`](results/fixed_threshold_metrics.json). In particular,
+`no_boots` still has zero recall at every sampled threshold; its apparent precision of `1.0` is a
+zero-prediction curve artefact, not successful detection.
+
+### Held-out qualitative predictions
+
+The following images were produced by the same checkpoint on the Construction-PPE test split, not
+on training images. They add qualitative context but do not replace the quantitative test metrics.
+All six exported examples are kept in [`docs/images/heldout`](docs/images/heldout).
+
+| Example 1 | Example 2 | Example 3 |
+|---|---|---|
+| ![Held-out PPE prediction on a solar-site worker](docs/images/heldout/image1.jpg) | ![Held-out PPE predictions on rail-platform workers](docs/images/heldout/image10.jpg) | ![Held-out PPE prediction on a construction worker](docs/images/heldout/image1003.jpg) |
+
 ## Run locally
 
 Create an environment and install the runtime dependencies.
@@ -393,6 +424,8 @@ Construction-Safety-Vision/
 ├── docs/images/
 │   ├── demo.gif
 │   ├── demo-output-synthetic.jpg
+│   ├── heldout/
+│   │   └── six test-split prediction examples
 │   └── saudi/
 │       ├── dvids-7926006-prediction.jpg
 │       ├── dvids-7930293-prediction.jpg
@@ -400,6 +433,8 @@ Construction-Safety-Vision/
 ├── results/
 │   ├── benchmark.json
 │   ├── confusion_matrix.png
+│   ├── fixed_threshold_metrics.json
+│   ├── fixed_threshold_metrics.md
 │   ├── metrics.json
 │   ├── model_checksums.txt
 │   ├── saudi-video-benchmark.json
