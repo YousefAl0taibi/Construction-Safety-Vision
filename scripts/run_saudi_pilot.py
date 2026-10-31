@@ -13,9 +13,12 @@ from pathlib import Path
 import cv2
 
 from src.predictor import PPEDetector
+from src.ppe_status import tracked_helmet_statuses
+from src.tracker import SimpleTracker
 
 
 IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp", ".bmp"}
+HELMET_STATES = ("OK", "NO_HELMET", "UNKNOWN")
 
 
 def parse_args() -> argparse.Namespace:
@@ -91,6 +94,7 @@ def run(args: argparse.Namespace) -> dict[str, object]:
     detector.warmup()
 
     class_counts: Counter[str] = Counter()
+    helmet_status_counts: Counter[str] = Counter()
     inference_times: list[float] = []
     records: list[dict[str, object]] = []
     started = time.perf_counter()
@@ -113,6 +117,10 @@ def run(args: argparse.Namespace) -> dict[str, object]:
 
         try:
             annotated, detections, inference_ms = detector.predict(image)
+            person_statuses = tracked_helmet_statuses(detections, SimpleTracker())
+            image_status_counts = Counter(
+                str(item["helmetStatus"]) for item in person_statuses
+            )
             destination = annotated_dir / f"{source_path.stem}-annotated.jpg"
             if not cv2.imwrite(str(destination), annotated):
                 raise OSError(f"could not write {destination}")
@@ -124,6 +132,7 @@ def run(args: argparse.Namespace) -> dict[str, object]:
 
         inference_times.append(inference_ms)
         class_counts.update(str(item["className"]) for item in detections)
+        helmet_status_counts.update(image_status_counts)
         height, width = image.shape[:2]
         record.update(
             {
@@ -132,6 +141,9 @@ def run(args: argparse.Namespace) -> dict[str, object]:
                 "imageSize": {"width": width, "height": height},
                 "inferenceMs": round(inference_ms, 1),
                 "detectionCount": len(detections),
+                "personHelmetStatusCounts": {
+                    state: image_status_counts.get(state, 0) for state in HELMET_STATES
+                },
                 "detections": detections,
             }
         )
@@ -159,6 +171,9 @@ def run(args: argparse.Namespace) -> dict[str, object]:
         "failedImages": failed,
         "detectionCount": sum(class_counts.values()),
         "classCounts": dict(sorted(class_counts.items())),
+        "personHelmetStatusCounts": {
+            state: helmet_status_counts.get(state, 0) for state in HELMET_STATES
+        },
         "meanInferenceMs": (
             round(statistics.fmean(inference_times), 1) if inference_times else None
         ),

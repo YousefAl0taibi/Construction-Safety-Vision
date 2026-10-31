@@ -1,0 +1,41 @@
+{
+  "schemaVersion": 1,
+  "purpose": "qualitative helmet-status comparison; not an accuracy benchmark",
+  "sourceReport": "outputs/saudi-pilot/summary.json",
+  "model": "models/best.pt",
+  "confidence": 0.35,
+  "imageCount": 15,
+  "sceneGroupCount": 3,
+  "personDetections": 75,
+  "personHelmetStatusCounts": {
+    "OK": 47,
+    "NO_HELMET": 1,
+    "UNKNOWN": 27
+  },
+  "personHelmetStatusShares": {
+    "OK": 0.6267,
+    "NO_HELMET": 0.0133,
+    "UNKNOWN": 0.36
+  },
+  "sceneGroups": {
+    "chu-construction-2023": {
+      "personDetections": 47,
+      "OK": 37,
+      "NO_HELMET": 0,
+      "UNKNOWN": 10
+    },
+    "confined-space-2023": {
+      "personDetections": 15,
+      "OK": 1,
+      "NO_HELMET": 1,
+      "UNKNOWN": 13
+    },
+    "safety-drill-2024": {
+      "personDetections": 13,
+      "OK": 9,
+      "NO_HELMET": 0,
+      "UNKNOWN": 4
+    }
+  },
+  "comparisonWarning": "Still-image counts are person detections; video counts are person-frames. The sources are related qualitative samples, so the difference is not an accuracy or causal estimate."
+}

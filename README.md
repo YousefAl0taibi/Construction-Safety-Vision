@@ -227,8 +227,12 @@ For videos and webcam input, the script gives each visible person a temporary tr
 one of three heuristic labels: `OK` when helmet evidence is associated with the person's head area,
 `NO HELMET` when explicit `no_helmet` evidence is associated with it, or `UNKNOWN` when the model
 does not provide clear evidence either way. This is intentionally a simple IoU and spatial-rule
-demo, not a safety-certified tracking system. A track is retained internally for up to 30 missed
-frames so a brief detector gap does not immediately renumber the person; retained tracks are not
+demo, not a safety-certified tracking system. The
+[dataset documentation](https://docs.ultralytics.com/datasets/detect/construction-ppe/) describes
+`none` only as a generic “Other” class, not as evidence of a missing helmet, so the rule engine
+intentionally leaves it as `UNKNOWN` rather than converting it to `NO HELMET`.
+A track is retained internally for up to 30 missed frames so a brief detector gap does not
+immediately renumber the person; retained tracks are not
 reported as current detections. The script also reports the number of frames, average model
 inference time, and end-to-end processing FPS. These numbers depend on the machine used.
 
@@ -249,6 +253,25 @@ person track IDs. Those IDs may include fragmented tracks and must not be interp
 people. Person-frame helmet states were 280 `OK`, 671 `UNKNOWN`, and no explicit `NO_HELMET`;
 these are per-frame heuristic outputs, not safety events or accuracy measurements. Full metadata is
 in [`results/saudi-video-benchmark.json`](results/saudi-video-benchmark.json).
+
+The clip primarily shows military personnel in camouflage and soft patrol caps during airfield
+repair, rather than construction workers consistently wearing hard hats and high-visibility gear.
+It therefore demonstrates decode → inference → tracking → annotation → encoding and also exposes a
+domain shift; its helmet-state distribution is not evidence of construction-site accuracy.
+
+Applying the same helmet rule to the 15 approved Saudi still images gives a useful, but not
+controlled, comparison:
+
+| Input | Counting unit | `OK` | `UNKNOWN` | `NO_HELMET` |
+|---|---|---:|---:|---:|
+| Saudi still images | 75 person detections | 47 (62.7%) | 27 (36.0%) | 1 (1.3%) |
+| Airfield-repair video | 951 person-frames | 280 (29.4%) | 671 (70.6%) | 0 (0.0%) |
+
+The stronger `OK` share in the stills is consistent with domain, subject-scale, and visibility
+differences, but does not identify one cause: the units differ, the stills come from only three
+related scene groups, and the detector also has fewer `no_helmet` than `helmet` training examples.
+The compact still-image result is stored in
+[`results/saudi-still-status-summary.json`](results/saudi-still-status-summary.json).
 
 ```text
 python scripts/download_saudi_video.py
@@ -444,6 +467,7 @@ Construction-Safety-Vision/
 │   ├── fixed_threshold_metrics.md
 │   ├── metrics.json
 │   ├── model_checksums.txt
+│   ├── saudi-still-status-summary.json
 │   ├── saudi-video-benchmark.json
 │   ├── train_class_distribution.json
 │   ├── train_class_distribution.md
