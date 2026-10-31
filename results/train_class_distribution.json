@@ -1,0 +1,21 @@
+{
+  "split": "train",
+  "images": 1132,
+  "matched_label_files": 1132,
+  "orphan_label_files_ignored": 10,
+  "images_without_label_files": 0,
+  "instances": 9098,
+  "classes": {
+    "helmet": {"class_id": 0, "instances": 1341},
+    "gloves": {"class_id": 1, "instances": 1146},
+    "vest": {"class_id": 2, "instances": 1269},
+    "boots": {"class_id": 3, "instances": 1235},
+    "goggles": {"class_id": 4, "instances": 419},
+    "none": {"class_id": 5, "instances": 651},
+    "Person": {"class_id": 6, "instances": 1770},
+    "no_helmet": {"class_id": 7, "instances": 400},
+    "no_goggle": {"class_id": 8, "instances": 337},
+    "no_gloves": {"class_id": 9, "instances": 442},
+    "no_boots": {"class_id": 10, "instances": 88}
+  }
+}

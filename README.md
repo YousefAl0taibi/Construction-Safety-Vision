@@ -139,6 +139,13 @@ as larger weaknesses than class separation. The matrix alone does not prove that
 is the cause; that would require stratifying results by bounding-box area and inspecting occlusion
 and lighting. See [`results/README.md`](results/README.md) for the count definitions.
 
+The training labels also show a substantial class imbalance. After matching labels to the 1,132
+training images, `no_boots` contributes only 88 of 9,098 instances (0.97%), compared with 1,235
+`boots` and 1,770 `Person` instances. Ten orphan label files with no matching training image were
+excluded from these counts. The imbalance is a plausible contributor to the class's zero test
+recall, but it does not prove causation; the machine-readable counts are in
+[`results/train_class_distribution.json`](results/train_class_distribution.json).
+
 ### Confidence-threshold trade-off
 
 The held-out test predictions were also sampled at three fixed confidence thresholds, using
@@ -438,6 +445,8 @@ Construction-Safety-Vision/
 │   ├── metrics.json
 │   ├── model_checksums.txt
 │   ├── saudi-video-benchmark.json
+│   ├── train_class_distribution.json
+│   ├── train_class_distribution.md
 │   └── README.md
 ├── scripts/
 │   ├── benchmark.py
